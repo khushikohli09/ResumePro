@@ -1,0 +1,216 @@
+/* index.css: global styles. It loads fonts, pulls in Tailwind, defines the colour tokens, */
+/* base page styling, a few custom classes (.paper-card, .bg-brand, ...) and all animations. */
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap");
+@import "tailwindcss";
+
+
+/* @theme registers design tokens with Tailwind v4: each --color-* becomes a utility */
+/* (e.g. --color-pink -> bg-pink, text-pink) and is also usable as var(--color-pink). */
+@theme {
+  /* Fonts: display = headings, body = normal text, mono = numbers/code accents. */
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* Brand colour tokens (the raw palette): */
+  /* ResumePro palette: #D8226C pink, #B2DAE4 sky, #005BB3 blue, #F86A38 orange, #029456 green */
+  --color-pink: #D8226C;
+  --color-sky: #B2DAE4;
+  --color-blue: #005BB3;
+  --color-orange: #F86A38;
+  --color-green: #029456;
+
+  /* Semantic tokens: named by purpose (background, text, borders...) but built from the palette above. */
+  /* color-mix() blends two colours by a percentage, e.g. 35% sky + 65% white for a soft tint. */
+  /* bg = page background; surface = cards; surface-2 = lighter tint for subtle panels. */
+  /* one fixed theme, built only from the palette */
+  --color-bg: #B2DAE4;
+  --color-surface: #ffffff;
+  --color-surface-2: color-mix(in srgb, #B2DAE4 35%, #ffffff);
+  /* ink = main text; muted = secondary text; line = borders and dividers. */
+  --color-ink: color-mix(in srgb, #005BB3 45%, #000000);
+  --color-muted: color-mix(in srgb, #005BB3 75%, #000000);
+  --color-line: color-mix(in srgb, #005BB3 25%, #B2DAE4);
+  /* accent = buttons/links/focus; accent-ink = text drawn on top of an accent background. */
+  --color-accent: #005BB3;
+  --color-accent-ink: #ffffff;
+  /* Status colours: good (success), warn (caution), danger (error). */
+  --color-good: #029456;
+  --color-warn: #F86A38;
+  --color-danger: #D8226C;
+
+  /* Logo colours: solid, faint background, border and glow variants of the pink. */
+  --color-logo: #D8226C;
+  --color-logo-muted: rgba(216, 34, 108, 0.12);
+  --color-logo-border: rgba(216, 34, 108, 0.40);
+  --color-logo-shadow: rgba(216, 34, 108, 0.30);
+
+  /* Soft blue-tinted drop shadow used by .paper-card. */
+  --shadow-card: 0 1px 3px rgb(0 91 179 / 0.10), 0 16px 36px -16px rgb(0 91 179 / 0.35);
+}
+
+/* Smooth scrolling for in-page anchor links. */
+html { scroll-behavior: smooth; }
+
+/* Page background: the sky colour plus four soft coloured glows in the corners, fixed in place while scrolling. */
+body {
+  background-color: var(--color-bg);
+  background-image:
+    radial-gradient(50rem 34rem at 90% -5%, rgba(216, 34, 108, 0.22), transparent 72%),
+    radial-gradient(48rem 34rem at -8% 12%, rgba(0, 91, 179, 0.18), transparent 70%),
+    radial-gradient(44rem 30rem at 100% 100%, rgba(248, 106, 56, 0.13), transparent 70%),
+    radial-gradient(44rem 30rem at 0% 100%, rgba(2, 148, 86, 0.12), transparent 70%);
+  background-attachment: fixed;
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* faint dot grid that fades out down the page */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: radial-gradient(var(--color-line) 1px, transparent 1px);
+  background-size: 22px 22px;
+  mask-image: linear-gradient(to bottom, #000, transparent 65%);
+  -webkit-mask-image: linear-gradient(to bottom, #000, transparent 65%);
+  opacity: 0.7;
+}
+
+/* Text selection highlight uses the accent colour. */
+::selection { background-color: var(--color-accent); color: var(--color-accent-ink); }
+
+/* Buttons shrink slightly while pressed, for tactile feedback. */
+button:not(:disabled):active { transform: scale(0.97); }
+/* Smoothly animate colour/transform changes on buttons and links. */
+button, a { transition-property: color, background-color, border-color, opacity, transform, box-shadow; transition-duration: 0.18s; }
+/* Visible keyboard-focus outline (accessibility). */
+:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+
+/* Signature element: the score "stamp", a rotated dashed seal */
+.score-stamp {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed currentColor;
+  border-radius: 9999px;
+  transform: rotate(-6deg);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  animation: stamp 0.6s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+/* Small +/- markers placed before list items (used for added/removed items in analysis results). */
+.mark-add::before { content: "+"; font-family: var(--font-mono); color: var(--color-good); margin-right: 0.5rem; font-weight: 700; }
+.mark-remove::before { content: "\2212"; font-family: var(--font-mono); color: var(--color-muted); margin-right: 0.5rem; font-weight: 700; }
+
+/* The standard white card: surface colour, thin border and soft shadow. Used for most panels. */
+.paper-card {
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-line);
+  box-shadow: var(--shadow-card);
+}
+
+/* Custom thin scrollbar (WebKit browsers: Chrome, Safari, Edge). */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-line); border-radius: 9999px; }
+
+/* ---------- animation utilities ---------- */
+/* Keyframes define the animation steps; the classes below apply them. */
+/* Many use --i (set inline per element) to delay each item a bit, creating a staggered effect. */
+@keyframes rise { from { opacity: 0; transform: translateY(16px); } }
+@keyframes pageIn { from { opacity: 0; transform: translateY(8px); } }
+@keyframes stamp { from { opacity: 0; transform: rotate(-18deg) scale(1.35); } }
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@keyframes shimmer { to { background-position: -200% 0; } }
+@keyframes growx { from { transform: scaleX(0); } }
+@keyframes ring { from { stroke-dashoffset: var(--c); } }
+@keyframes blink { 50% { border-color: transparent; } }
+@keyframes sheen { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+@keyframes pulseDot { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-accent) 65%, transparent); } 100% { box-shadow: 0 0 0 10px transparent; } }
+@keyframes spinSlow { to { transform: rotate(360deg); } }
+
+/* rise: fade + slide up on appear; page-enter: quick fade-in for route changes. */
+.rise { animation: rise 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: calc(var(--i, 0) * 70ms); }
+.page-enter { animation: pageIn 0.4s ease both; }
+/* float-slow: gentle endless up/down bobbing. */
+.float-slow { animation: float 6s ease-in-out infinite; }
+/* grow-x: bar grows from the left (score bars). */
+.grow-x { transform-origin: left; animation: growx 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: calc(var(--i, 0) * 80ms + 250ms); }
+/* ring-fg: draws a circular progress ring using stroke-dashoffset (--c = circumference, --target = final offset). */
+.ring-fg { stroke-dasharray: var(--c); stroke-dashoffset: var(--target); animation: ring 1.1s cubic-bezier(0.2, 0.8, 0.2, 1) both; animation-delay: calc(var(--i, 0) * 70ms + 150ms); }
+/* caret: blinking text cursor for the typewriter effect. */
+.caret { border-right: 2px solid currentColor; animation: blink 0.9s steps(1) infinite; }
+/* pulse-dot: small dot with an expanding ripple, for "live"/active indicators. */
+.pulse-dot { width: 8px; height: 8px; border-radius: 9999px; background: var(--color-accent); animation: pulseDot 1.6s ease-out infinite; }
+/* Logo ring spins while the logo is hovered. */
+.brand-mark:hover .brand-ring { animation: spinSlow 3s linear infinite; }
+
+/* skeleton: grey loading placeholder with a light band sweeping across (shimmer). */
+.skeleton {
+  background: linear-gradient(100deg, var(--color-surface-2) 30%, color-mix(in srgb, var(--color-line) 70%, var(--color-surface)) 50%, var(--color-surface-2) 70%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+  border-radius: 0.75rem;
+}
+
+/* card-lift: cards rise and glow on hover; .leaving fades/shrinks an item out (e.g. when deleting). */
+.card-lift { transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.28s, border-color 0.28s, opacity 0.26s; }
+.card-lift:hover {
+  transform: translateY(-4px);
+  border-color: var(--color-accent);
+  box-shadow: 0 16px 40px -18px color-mix(in srgb, var(--color-accent) 45%, transparent), 0 0 20px -8px color-mix(in srgb, var(--color-accent) 25%, transparent);
+}
+.leaving { opacity: 0; transform: scale(0.95) translateY(8px); pointer-events: none; }
+
+/* banner-sheen: slowly moving highlight across a banner background. */
+.banner-sheen {
+  background-image: linear-gradient(110deg, color-mix(in srgb, var(--color-accent) 15%, var(--color-surface)) 0%, var(--color-surface) 35%, color-mix(in srgb, var(--color-accent) 25%, var(--color-surface)) 65%, color-mix(in srgb, var(--color-accent) 15%, var(--color-surface)) 100%);
+  background-size: 200% 100%;
+  animation: sheen 9s linear infinite;
+}
+
+/* stagger: children of the element animate in one after another, 0.08s apart. */
+.stagger > * { animation: rise 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.stagger > *:nth-child(2) { animation-delay: 0.08s; }
+.stagger > *:nth-child(3) { animation-delay: 0.16s; }
+.stagger > *:nth-child(4) { animation-delay: 0.24s; }
+.stagger > *:nth-child(5) { animation-delay: 0.32s; }
+
+/* Accessibility: if the user prefers reduced motion, effectively switch off all animations and transitions. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Print / "Save as PDF": show only the resume, at full width */
+@media print {
+  @page { margin: 12mm; }
+  body::before { display: none; }
+  body * { visibility: hidden; }
+  #resume-preview, #resume-preview * { visibility: visible; }
+  #resume-preview { position: absolute; left: 0; top: 0; width: 100%; max-width: none !important; padding: 0 !important; }
+}
+
+/* ---------- colourful brand helpers ---------- */
+/* .bg-brand: pink-to-blue gradient background with white text; the hover state switches to orange-to-pink. */
+.bg-brand { background-image: linear-gradient(110deg, #D8226C 0%, #005BB3 100%); color: #fff; }
+.bg-brand:hover { background-image: linear-gradient(110deg, #F86A38 0%, #D8226C 100%); }
+/* .text-rainbow: gradient-filled text. The gradient is clipped to the letters and the real text colour made transparent. */
+.text-rainbow {
+  background-image: linear-gradient(90deg, #D8226C, #F86A38, #029456, #005BB3);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+}
